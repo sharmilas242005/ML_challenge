@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+
+# Datasets and large processed TSV/CSV files
+datasets/
+dataset/
+data/
+output/
+*.tsv
+*.csv
+*.zip
+*.tar.gz
+*.pkl
+
+# Logs and system
+*.log
+.system_generated/
+.gemini/
