@@ -8,18 +8,18 @@ venv/
 .venv/
 env/
 
-# Datasets and large processed TSV/CSV files
+# Large multi-hundred-megabyte test files (> 100 MB, exceeds GitHub limits)
 datasets/
-dataset/
-data/
+dataset/test/
+data/processed/*test*.tsv
+data/processed/name_candidates.tsv
+data/processed/name_features.tsv
 output/
-*.tsv
-*.csv
+
+# Common archives and temp files
 *.zip
 *.tar.gz
 *.pkl
-
-# Logs and system
 *.log
 .system_generated/
 .gemini/
