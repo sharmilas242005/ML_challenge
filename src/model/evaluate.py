@@ -130,7 +130,7 @@ def evaluate_combined_recall(
     df_merged = pd.read_csv(merged_cands_file, sep="\t", dtype=str).fillna("")
     merged_total = len(df_merged)
 
-    for _, row in df_merged.iterrows():
+    for row in df_merged.to_dict('records'):
         pair = (row["source1_entity_id"], row["candidate_entity_id"])
         if pair in gt_positive_pairs:
             merged_captured.add(pair)
