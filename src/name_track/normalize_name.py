@@ -15,7 +15,10 @@ import re
 import unicodedata
 import os
 import csv
-import pandas as pd
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 # Precompiled regex patterns for legal suffix synonyms across US, India, France
 # Replacements are padded with spaces to avoid adjacent token collision

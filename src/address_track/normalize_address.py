@@ -23,7 +23,10 @@ import sys
 import re
 import csv
 import unicodedata
-import pandas as pd
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 # Standard abbreviations across US, India, France
 # Padded with spaces to avoid token collision
@@ -254,46 +257,49 @@ def extract_city(raw_address: str, country: str = "") -> str:
     return ""
 
 
+# Multi-word or specific phrases
+COMPILED_PHRASES = [
+    (re.compile(r'\bnext\s+to\b', re.IGNORECASE), ' next to '),
+    (re.compile(r'\bin\s+front\s+of\b', re.IGNORECASE), ' in front of '),
+    (re.compile(r'\badjacent\s+to\b', re.IGNORECASE), ' adjacent to '),
+    (re.compile(r'\bp\s*\.?\s*o\s*\.?\s*box\b', re.IGNORECASE), ' po box '),
+    (re.compile(r'\bh\s*\.?\s*no\s*\.?\b', re.IGNORECASE), ' house number '),
+    (re.compile(r'\bplot\s+no\s*\.?\b', re.IGNORECASE), ' plot number '),
+    (re.compile(r'\bs\s*\.?\s*no\s*\.?\b', re.IGNORECASE), ' survey number '),
+]
+
+WORD_ABBREVIATIONS = {
+    'rd': 'road', 'st': 'street', 'ave': 'avenue', 'av': 'avenue', 'blvd': 'boulevard',
+    'bd': 'boulevard', 'bvd': 'boulevard', 'dr': 'drive', 'hwy': 'highway', 'ln': 'lane',
+    'ct': 'court', 'pkwy': 'parkway', 'sq': 'square', 'pl': 'place', 'rte': 'route',
+    'all': 'allee', 'imp': 'impasse', 'chem': 'chemin', 'ste': 'suite', 'apt': 'apartment',
+    'apts': 'apartments', 'flr': 'floor', 'fl': 'floor', '1st': '1', '2nd': '2',
+    '3rd': '3', '4th': '4', '5th': '5', 'bldg': 'building', 'chs': 'society',
+    'soc': 'society', 'sec': 'sector', 'dist': 'district', 'no': 'number',
+    'nr': 'near', 'nrs': 'number', 'opp': 'opposite'
+}
+
 def normalize_address(raw_address: str, country: str = "") -> str:
     """
-    Standardize a raw business address string:
-    - Robust against None / empty / non-string.
-    - Strips accents (diacritics).
-    - Standardizes '&' -> ' and '.
-    - Standardizes abbreviations (rd -> road, st -> street, ave -> avenue, etc.).
-    - Removes punctuation while preserving alphanumeric characters and whitespace.
-    - Collapses whitespace and lowercases.
+    Standardize a raw business address string (high-performance single-pass implementation).
     """
-    if not isinstance(raw_address, str):
+    if not isinstance(raw_address, str) or not raw_address:
         return ""
     text = raw_address.strip()
     if not text:
         return ""
 
-    # Normalize unicode accents (é -> e, etc.)
     text = strip_accents(text)
-
-    # Standardize conjunctions and symbols
-    if '&' in text:
-        text = text.replace('&', ' and ')
-    if '#' in text:
-        text = text.replace('#', ' number ')
-    if '/' in text:
-        # Preserve fractions or slashes in plot numbers by spacing
-        text = text.replace('/', ' ')
-
-    # Lowercase
+    if '&' in text: text = text.replace('&', ' and ')
+    if '#' in text: text = text.replace('#', ' number ')
+    if '/' in text: text = text.replace('/', ' ')
     text = text.lower()
 
-    # Expand abbreviations
-    for pat, rep in COMPILED_ABBREVIATIONS:
+    for pat, rep in COMPILED_PHRASES:
         text = pat.sub(rep, text)
 
-    # Strip punctuation
-    text = NON_ALPHANUM.sub(' ', text)
-
-    # Collapse multiple whitespace
-    return ' '.join(text.split())
+    words = NON_ALPHANUM.sub(' ', text).split()
+    return ' '.join(WORD_ABBREVIATIONS.get(w, w) for w in words)
 
 
 def extract_address_core(address_norm: str) -> str:

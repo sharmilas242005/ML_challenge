@@ -24,7 +24,10 @@ import os
 import csv
 import gc
 from collections import defaultdict
-import jellyfish
+try:
+    import jellyfish
+except ImportError:
+    jellyfish = None
 
 STOPWORDS = {
     'and', 'the', 'for', 'with', 'from', 'inc', 'corp', 'corporation',

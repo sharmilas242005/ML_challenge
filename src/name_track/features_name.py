@@ -23,8 +23,12 @@ import csv
 import math
 import argparse
 from collections import Counter
-from rapidfuzz import fuzz
-from rapidfuzz.distance import Levenshtein
+try:
+    from rapidfuzz import fuzz
+    from rapidfuzz.distance import Levenshtein
+except ImportError:
+    fuzz = None
+    Levenshtein = None
 
 
 def get_char_ngrams(s: str, n: int = 3) -> list[str]:
